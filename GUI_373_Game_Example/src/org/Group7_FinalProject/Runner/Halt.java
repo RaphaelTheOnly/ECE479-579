@@ -8,6 +8,7 @@ public class Halt extends Powerup {
 		
 		super(x, y);
 		loadImage("src/resources/halt.png");
+
 		
 	}
 
