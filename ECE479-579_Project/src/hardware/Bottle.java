@@ -10,7 +10,6 @@ public class Bottle {
 	public void fillBottle() {
 		fill = 100;
 	}
-	
 	public void emptyBottle() {
 		fill = 0;
 	}
