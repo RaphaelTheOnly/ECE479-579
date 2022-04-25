@@ -6,11 +6,19 @@ public class Bottle {
 	private boolean isEmpty;
     
 	// constructor
-	Bottle() {
-		ouncesRemaining = 768;
-		isEmpty = false;
+	public Bottle() {
+		this(100);
 	}
 	
+	// constructor
+	public Bottle(int percentFull) {
+		
+		ouncesRemaining = 768 * percentFull / 100;
+		if (ouncesRemaining > 0)
+			isEmpty = false;
+		else isEmpty = true;
+	}
+		
 	// getter for how many ounces left in bottle
 	public int getOunces() {
 		return ouncesRemaining;
