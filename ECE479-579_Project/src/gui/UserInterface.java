@@ -18,7 +18,7 @@ public class UserInterface extends JFrame {
         add(new System());
 
         setTitle("ThirstAI");
-        setSize(1400, 850);
+        setSize(1037, 850);
         
         setLocationRelativeTo(null);
         setResizable(false);
