@@ -2,7 +2,7 @@ package hardware;
 
 public class RobotArm {
 	
-	private String stateOfBottles[] = new String[5];
+	private Bottle stateOfBottles[] = new Bottle[5];
 	private int emptyBottleCounter;
 	
 	private boolean handEmpty;
@@ -16,11 +16,11 @@ public class RobotArm {
 	// constructor
 	RobotArm(){
 		// initial state
-		stateOfBottles[0] = "full";
-		stateOfBottles[1] = "full";
-		stateOfBottles[2] = "full";
-		stateOfBottles[3] = "full";
-		stateOfBottles[4] = "vacant";
+		stateOfBottles[0] = new Bottle(100);
+		stateOfBottles[1] = new Bottle(100);
+		stateOfBottles[2] = new Bottle(100);
+		stateOfBottles[3] = new Bottle(100);
+		stateOfBottles[4] = new Bottle(-1);
 		
 		emptyBottleCounter = 0;
 		handEmpty = true;
@@ -36,11 +36,11 @@ public class RobotArm {
 	// TODO: do we need one each for 2/3 bottles?
 	public void technicianRestock() {
 		// basically resets to initial state
-		stateOfBottles[0] = "full"; // except this one may already be partially used
-		stateOfBottles[1] = "full";
-		stateOfBottles[2] = "full";
-		stateOfBottles[3] = "full";
-		stateOfBottles[4] = "vacant";
+		stateOfBottles[0] = new Bottle(100); // except this one may already be partially used
+		stateOfBottles[1] = new Bottle(100);
+		stateOfBottles[2] = new Bottle(100);
+		stateOfBottles[3] = new Bottle(100);
+		stateOfBottles[4] = new Bottle(-1);
 		
 		emptyBottleCounter = 0;
 	}
@@ -65,7 +65,7 @@ public class RobotArm {
 	
 	public void rotateBottles() {
 		
-		stateOfBottles[0] = "empty";
+		stateOfBottles[0].setStatus("empty");
 		
 		if (isIdle) {
 			isIdle = false;
@@ -114,7 +114,7 @@ public class RobotArm {
 			}
 		}
 		armPosition = 99; // reset to idle position
-		stateOfBottles[4] = "vacant"; // reset to proper condition
+		stateOfBottles[4] = new Bottle(-1); // reset to proper condition
 		emptyBottleCounter ++;
 	}
 	
@@ -132,7 +132,7 @@ public class RobotArm {
 	public void pickupBottle(int x) {
 		// add list
 		holding = true;
-		contentsOfHolding = stateOfBottles[x];
+		contentsOfHolding = stateOfBottles[x].getStatus();
 		nextVacantPosition = x; // don't want to overwrite the vacant position until bottle is placed.
 								// - while bottle is held, there are 2 vacant positions.
 		// delete list
@@ -145,7 +145,7 @@ public class RobotArm {
 	public void placeBottle(int x) {
 		//add list
 		handEmpty = true;
-		stateOfBottles[x]= contentsOfHolding; 
+		stateOfBottles[x].setStatus(contentsOfHolding);
 		
 		// delete list
 		vacantPosition = nextVacantPosition;
@@ -157,34 +157,34 @@ public class RobotArm {
 	public void printStateArray() {
 		System.out.println("***************");
 		for (int i = 0; i < 5; i++) {
-			System.out.println("[" + i + "]" + stateOfBottles[i]);
+			System.out.println("[" + i + "]" + stateOfBottles[i].getStatus());
 		}
 		System.out.println("***************");
 	}
 	
 	// local testing
-//	public static void main(String args[]) {
-//		RobotArm r1 = new RobotArm();
-//		System.out.println("start");
-//		r1.printStateArray();
-//		System.out.println(r1.emptyBottleCounter);
-//		System.out.println("1 rotate");
-//		r1.rotateBottles();
-//		r1.printStateArray();
-//		System.out.println(r1.emptyBottleCounter);
-//		System.out.println("2 rotate");
-//		r1.rotateBottles();
-//		r1.printStateArray();
-//		System.out.println(r1.emptyBottleCounter);
-//		System.out.println("3 rotate");
-//		r1.rotateBottles();
-//		r1.printStateArray();
-//		System.out.println(r1.emptyBottleCounter);
-//		r1.technicianRestock();
-//		r1.printStateArray();
-//		System.out.println(r1.emptyBottleCounter);
-//		System.out.println("contents of hold: " + r1.contentsOfHolding);
-//		//Bottle b2 = new Bottle();
-//		
-//	}
+	public static void main(String args[]) {
+		RobotArm r1 = new RobotArm();
+		System.out.println("start");
+		r1.printStateArray();
+		System.out.println(r1.emptyBottleCounter);
+		System.out.println("1 rotate");
+		r1.rotateBottles();
+		r1.printStateArray();
+		System.out.println(r1.emptyBottleCounter);
+		System.out.println("2 rotate");
+		r1.rotateBottles();
+		r1.printStateArray();
+		System.out.println(r1.emptyBottleCounter);
+		System.out.println("3 rotate");
+		r1.rotateBottles();
+		r1.printStateArray();
+		System.out.println(r1.emptyBottleCounter);
+		r1.technicianRestock();
+		r1.printStateArray();
+		System.out.println(r1.emptyBottleCounter);
+		System.out.println("contents of hold: " + r1.contentsOfHolding);
+		//Bottle b2 = new Bottle();
+		
+	}
 }
