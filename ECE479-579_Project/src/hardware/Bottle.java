@@ -1,5 +1,7 @@
 package hardware;
 
+import java.util.Random;
+
 public class Bottle {
 	// max volume is 6 gallons = 768 ounces
 	private int ouncesRemaining;
@@ -40,6 +42,14 @@ public class Bottle {
 		return ouncesRemaining;
 	}
 	
+	public boolean getIsEmpty() {
+		return isEmpty;
+	}
+	
+	public boolean getIsLessThanQuarterFull() {
+		return lessThanQuarterFull;
+	}
+	
 	public String getStatus() {
 		return status;
 	}
@@ -61,6 +71,7 @@ public class Bottle {
 	}
 	
 	public void dispense(int vol) {
+		// TODO if dispensing more than ouncesRemaining, limit the dispense 
 		ouncesRemaining -= vol;
 		status = "in use";
 		if (ouncesRemaining < 192) {
@@ -72,6 +83,13 @@ public class Bottle {
 			status = "empty";
 			// TODO if = 0, isEmpty = true, replace bottle
 		}
+	}
+	
+	public void randomDispense() {
+		Random x = new Random();
+		int randomVolume = x.nextInt(48) + 20; // 48 can change, just seemed like a reasonable cap per dispense use
+		System.out.println("Dispensing ounces: " + randomVolume);
+		dispense(randomVolume);
 	}
 	
     public void printHowFull() {

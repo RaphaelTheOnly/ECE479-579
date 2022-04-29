@@ -12,6 +12,7 @@ public class RobotArm {
 	private boolean isIdle;
 	private boolean holding;
 	private String contentsOfHolding;
+	private Bottle tempBottle;
 	
 	// constructor
 	RobotArm(){
@@ -33,10 +34,9 @@ public class RobotArm {
 	}
 	
 	// resets the robot arm to initial state 1 (4 full bottles)
-	// TODO: do we need one each for 2/3 bottles?
-	public void technicianRestock() {
+	public void technicianRestock(Bottle inUseBottle) {
 		// basically resets to initial state
-		stateOfBottles[0] = new Bottle(100); // except this one may already be partially used
+		stateOfBottles[0] = inUseBottle; // except this one may already be partially used
 		stateOfBottles[1] = new Bottle(100);
 		stateOfBottles[2] = new Bottle(100);
 		stateOfBottles[3] = new Bottle(100);
@@ -45,27 +45,12 @@ public class RobotArm {
 		emptyBottleCounter = 0;
 	}
 	
-//	// call this when the current bottle runs empty, replace it and rotate all the bottles accordingly
-//	public void rotateBottlesOld() {
-//		
-//		// [0] should be "empty" at the start of this rotation
-//		stateOfBottles[0] = "empty";
-//		
-//		// [4] should always be "null" in any initial state for this function, so we can overwrite it first
-//		stateOfBottles[4] = stateOfBottles[0];
-//		stateOfBottles[0] = stateOfBottles[1];
-//		stateOfBottles[1] = stateOfBottles[2];
-//		stateOfBottles[2] = stateOfBottles[3];
-//		stateOfBottles[3] = stateOfBottles[4]; // which has been overwritten with empty [0] already
-//											  // so [3] should be empty now
-//		stateOfBottles[4] = "vacant";
-//		
-//		emptyBottleCounter ++;
-//	}
+	public void callTechnician3() {
+		// TODO
+	}
 	
+	// call this when the current bottle runs empty, replace it and rotate all the bottles accordingly
 	public void rotateBottles() {
-		
-		stateOfBottles[0].setStatus("empty");
 		
 		if (isIdle) {
 			isIdle = false;
@@ -132,6 +117,7 @@ public class RobotArm {
 	public void pickupBottle(int x) {
 		// add list
 		holding = true;
+		tempBottle = stateOfBottles[x];
 		contentsOfHolding = stateOfBottles[x].getStatus();
 		nextVacantPosition = x; // don't want to overwrite the vacant position until bottle is placed.
 								// - while bottle is held, there are 2 vacant positions.
@@ -145,7 +131,8 @@ public class RobotArm {
 	public void placeBottle(int x) {
 		//add list
 		handEmpty = true;
-		stateOfBottles[x].setStatus(contentsOfHolding);
+		stateOfBottles[x]= tempBottle; 
+		//stateOfBottles[x].setStatus(contentsOfHolding);
 		
 		// delete list
 		vacantPosition = nextVacantPosition;
@@ -165,26 +152,23 @@ public class RobotArm {
 	// local testing
 	public static void main(String args[]) {
 		RobotArm r1 = new RobotArm();
-		System.out.println("start");
-		r1.printStateArray();
-		System.out.println(r1.emptyBottleCounter);
-		System.out.println("1 rotate");
-		r1.rotateBottles();
-		r1.printStateArray();
-		System.out.println(r1.emptyBottleCounter);
-		System.out.println("2 rotate");
-		r1.rotateBottles();
-		r1.printStateArray();
-		System.out.println(r1.emptyBottleCounter);
-		System.out.println("3 rotate");
-		r1.rotateBottles();
-		r1.printStateArray();
-		System.out.println(r1.emptyBottleCounter);
-		r1.technicianRestock();
-		r1.printStateArray();
-		System.out.println(r1.emptyBottleCounter);
-		System.out.println("contents of hold: " + r1.contentsOfHolding);
-		//Bottle b2 = new Bottle();
-		
+		int days = 1;
+		while(days < 11) { // 10 days
+			System.out.println("**********");
+			System.out.println("Day " + days);
+			System.out.println("**********");
+			for (int i = 0; i < 10; i++) { // 10 uses per day
+				r1.stateOfBottles[0].randomDispense();
+				System.out.println(" - ounces left: " + r1.stateOfBottles[0].getOunces());
+				if (r1.stateOfBottles[0].getIsEmpty()) {
+					r1.rotateBottles();
+					System.out.println("Rotating...");
+					if (r1.emptyBottleCounter >= 2 && r1.stateOfBottles[0].getIsLessThanQuarterFull()) {
+						r1.callTechnician3();
+					}
+				}
+			}
+			days++;
+		}
 	}
 }
