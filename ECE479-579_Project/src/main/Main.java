@@ -12,9 +12,5 @@ public class Main {
         	AISystem ex = new AISystem();
             ex.setVisible(true);
         });
-        
-        //Timer timer = new Timer();
-    	//timer.schedule(new Difficulty(), 0, 5000);
-		
     }
 }
