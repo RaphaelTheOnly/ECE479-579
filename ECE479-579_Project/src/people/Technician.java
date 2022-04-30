@@ -4,26 +4,40 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import gui.UserInterface;
-import software.AISystem;
-
 
 public class Technician implements ActionListener {
-	private AISystem system;
 	private UserInterface ui;
-
+	public boolean leakDetected;
 	
 	public Technician() {
-		this(new UserInterface(), new AISystem());
-	}
-
-	public Technician(UserInterface ui, AISystem sys) {
-		system = sys;
-		this.ui = ui;
+		this(new UserInterface());
 	}
 	
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		system.initSystem();
-		ui.repaint();
+	public Technician(UserInterface ui) {
+		this.ui = ui;
+		leakDetected = false;
+		//System.out.println("technician was created");
 	}
+
+	@Override
+	  public void actionPerformed(ActionEvent e) {
+			if (leakDetected && ui.getNumFullBott() == 0) {
+				System.out.println("leak detected and no more full bottles");
+				fixLeak();
+				ui.restartAISystem();
+			}
+			else if (leakDetected) {
+				System.out.println("leak detected");
+				fixLeak();
+			}
+			else {
+				ui.restartAISystem();
+			}
+	  }
+	
+	public void fixLeak() {
+		ui.leakFixed();
+		leakDetected = false;
+	}
+
 }

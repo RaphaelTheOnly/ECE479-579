@@ -5,65 +5,77 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.Timer;
-
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 
-import people.Technician;
 import software.AISystem;
+import people.Technician;
+
 
 public class UserInterface extends JPanel implements ActionListener {
 
-	private AISystem system;
+	private AISystem aiSystem;
+	public Technician technician;
 	private Image image; //for background image
 	private final int B_WIDTH = 1037;
     private final int B_HEIGHT = 850;
-    private Timer bottChangeTimer;
-    private Timer bottDeliverTimer;
     
-    private JLabel fillLabel;
-    private JLabel fullBLabel;
-    private JLabel mtyBLabel;
-    private JLabel technLabel;
-    private JButton disp500Btn;
-    private JButton emtyBtn;
-    private JButton smallBtn;
-    private JButton mediumBtn;
-    private JButton largeBtn;
-    private JButton stopBtn;
+    public JLabel leakLabel;
+    public JLabel fillLabel;
+    public JLabel fullBLabel;
+    public JLabel mtyBLabel;
+    public JLabel technLabel;
+    public JLabel secHouseLabel;
+    public JLabel thiHouseLabel;
+    public JLabel fouHouseLabel;
+    public JLabel fifHouseLabel;
+    public JButton disp500Btn;
+    public JButton emtyBtn;
+    public JButton smallBtn;
+    public JButton mediumBtn;
+    public JButton largeBtn;
+    public JButton stopBtn;
+    
+    private Timer bottChangeTimer;
+	private Timer bottDeliveryTimer;
     
     public UserInterface() {
     	this(new AISystem());
     }
     
 	public UserInterface(AISystem s1) {
-		this.system = s1;
+		aiSystem = s1;
+		technician = new Technician(this);
 		bottChangeTimer = new Timer(1000, this);
-		bottDeliverTimer = new Timer(2000, new Technician(this, system));
+		bottDeliveryTimer = new Timer(2000, technician);
 		initUI();
 	}
 
     private void initUI() {
-
+    	
         setFocusable(true);
         setBackground(Color.BLACK);
-        
         setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
 		
-        fullBLabel = new JLabel("# of full bottles: " + system.getNumFull());
+        leakLabel = new JLabel("<html> <font color=red> ThirstAid detected a leak, a technician is on their way!</font></html>");
+        leakLabel.setFont(new Font("Arial", Font.BOLD, 45));
+        leakLabel.setBounds(280,80,600,300);
+        leakLabel.setVisible(false);
+		add(leakLabel);
+		
+        fullBLabel = new JLabel("Full bottles: " + aiSystem.getNumFull());
         fullBLabel.setFont(new Font("Arial", Font.BOLD, 18));
         fullBLabel.setBounds(60,210,300,50); 
         fullBLabel.setForeground(Color.black);
 		add(fullBLabel);
 		
-		mtyBLabel = new JLabel("# of empty bottles: " + system.getNumEmpty());
+		mtyBLabel = new JLabel("Empty bottles: " + aiSystem.getNumEmpty());
 		mtyBLabel.setFont(new Font("Arial", Font.BOLD, 18));
 		mtyBLabel.setBounds(60,250,300,50); 
         mtyBLabel.setForeground(Color.black);
 		add(mtyBLabel);
 		
-        fillLabel = new JLabel("Current fill: " + system.getDispBFill() + " oz.");
+        fillLabel = new JLabel("Current fill: " + aiSystem.getDispBFill() + " oz.");
         fillLabel.setFont(new Font("Arial", Font.BOLD, 18));
         fillLabel.setBounds(60,320,300,50); 
         fillLabel.setForeground(Color.black);
@@ -74,8 +86,8 @@ public class UserInterface extends JPanel implements ActionListener {
 		disp500Btn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				system.dispense(500);
-				checkFillNBottles();			
+				aiSystem.dispense(500);
+				aiSystem.checkFillNBottles();			
 				repaint();
 			}
 		});
@@ -86,8 +98,8 @@ public class UserInterface extends JPanel implements ActionListener {
         emtyBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				system.dispense(800);
-				checkFillNBottles();		
+				aiSystem.dispense(800);
+				aiSystem.checkFillNBottles();		
 				repaint();
 			}
 		});
@@ -113,8 +125,8 @@ public class UserInterface extends JPanel implements ActionListener {
         smallBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				system.dispense(16);
-				checkFillNBottles();			
+				aiSystem.dispense(16);
+				aiSystem.checkFillNBottles();			
 				repaint();
 			}
 		});
@@ -140,8 +152,8 @@ public class UserInterface extends JPanel implements ActionListener {
         mediumBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				system.dispense(32);
-				checkFillNBottles();		
+				aiSystem.dispense(32);
+				aiSystem.checkFillNBottles();		
 				repaint();
 			}
 		});
@@ -167,8 +179,8 @@ public class UserInterface extends JPanel implements ActionListener {
         largeBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				system.dispense(64);
-				checkFillNBottles();		
+				aiSystem.dispense(64);
+				aiSystem.checkFillNBottles();		
 				repaint();
 			}
 		});
@@ -200,76 +212,107 @@ public class UserInterface extends JPanel implements ActionListener {
         technLabel.setVisible(false);
 		add(technLabel);
 
+		secHouseLabel = new JLabel();
+        secHouseLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        secHouseLabel.setBounds(20,550,300,80); 
+        secHouseLabel.setForeground(Color.black);
+		add(secHouseLabel);
+		
+		thiHouseLabel = new JLabel();
+		thiHouseLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        thiHouseLabel.setBounds(170,550,300,80); 
+        thiHouseLabel.setForeground(Color.black);
+		add(thiHouseLabel);
+		
+		fouHouseLabel = new JLabel();
+		fouHouseLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        fouHouseLabel.setBounds(20,650,300,80); 
+        fouHouseLabel.setForeground(Color.black);
+		add(fouHouseLabel);
+		
+		fifHouseLabel = new JLabel();
+		fifHouseLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        fifHouseLabel.setBounds(170,650,300,80); 
+        fifHouseLabel.setForeground(Color.black);
+		add(fifHouseLabel);
+		
         this.setLayout(null);
        
         ImagePanel();
     }
     
-    public void checkFillNBottles() {
-    	System.out.println("# of empty bottles: " + system.getNumEmpty());
-    	if (system.getNumEmpty() == 3) {
-    		System.out.println("in 3 empty");
-    		technLabel.setVisible(true);
-    		bottDeliverTimer.start();
-    		repaint();
-    	}
-    	
-    	if (system.getDispBFill() == 0) {
-			System.out.println("DispFill = " +system.getDispBFill());
-			bottChangeTimer.start();
-		}
-    }
-		
 	public void ImagePanel() {
         ImageIcon ii = new ImageIcon("src/resources/ThirstAid2000.JPG");
         image = ii.getImage(); 
     } 
 	
+	public void startBottChangeTimer() {
+		bottChangeTimer.start();
+	}
+	
+	public void startBottDelTimer() {
+		bottDeliveryTimer.start();
+	}
+	
+	public void restartAISystem() {
+		aiSystem.initSystem();
+		aiSystem.randNum = 5;
+		repaint();
+		bottDeliveryTimer.restart();
+		bottDeliveryTimer.stop();
+	}
+	
+	public void leakFixed() {
+		leakLabel.setVisible(false);
+		repaint();
+		bottDeliveryTimer.restart();
+		bottDeliveryTimer.stop();
+	}
+	
+	public boolean getTechLeakDetected() {
+		return technician.leakDetected;
+	}
+	
+	public void setTechLeakDetected() {
+		technician.leakDetected = true;
+	}
+	
+	public int getNumFullBott() {
+		return aiSystem.getNumFull();
+	}
 	
 	@Override 
 	public void paintComponent(Graphics g) { 
 		super.paintComponent(g);
 		g.drawImage(image, 0, 0, this); // image background
 		
-		fullBLabel.setText("# of full bottles: " + system.getNumFull());
-		mtyBLabel.setText("# of empty bottles: " + system.getNumEmpty());
-		fillLabel.setText("Current fill: " + system.getDispBFill() + " oz.");
-		if (system.getNumFull() > 1) {
-			technLabel.setVisible(false);
-		}
+		//checkLeaks();
+		
+		fullBLabel.setText("Full bottles: " + aiSystem.getNumFull());
+		mtyBLabel.setText("Empty bottles: " + aiSystem.getNumEmpty());
+		fillLabel.setText("Current fill: " + aiSystem.getDispBFill() + " oz.");
+		aiSystem.checkRandNum4Houses();
+		
 		//drawObjects(g);
 		
 		Toolkit.getDefaultToolkit().sync();
 	}
 	  
-	  
-	  
-	  //g.setColor(Color.WHITE); g.drawString("Depth: " + runner.getY(), 5, 15); }
-	  
-	  private void drawGameOver(Graphics g) {
-	  
-	  String msg = "Game Over"; Font small = new Font("Helvetica", Font.BOLD, 14);
-	  FontMetrics fm = getFontMetrics(small);
-	  
-	  g.setColor(Color.white); g.setFont(small); g.drawString(msg, (B_WIDTH -
-	  fm.stringWidth(msg)) / 2, B_HEIGHT / 2); 
-	  
+	@Override
+	  public void actionPerformed(ActionEvent e) {
+
+			/*
+			 * if (system.getDispBFill() == 0) { System.out.println("DispFill = "
+			 * +system.getDispBFill()); system.changeBottles(); }
+			 */
+			aiSystem.changeBottles();
+			aiSystem.checkFillNBottles();
+			aiSystem.checkLeaks();
+			//System.out.println("b4 repaint()");
+	        repaint();
+	        bottChangeTimer.restart();
+	        bottChangeTimer.stop();
+	        
 	  }
 	
-	@Override
-    public void actionPerformed(ActionEvent e) {
-
-		//checkFill();
-		/*
-		 * if (system.getDispBFill() == 0) { System.out.println("DispFill = "
-		 * +system.getDispBFill()); system.changeBottles(); }
-		 */
-		system.changeBottles();
-		checkFillNBottles();
-		System.out.println("b4 repaint()");
-        repaint();
-        bottChangeTimer.restart();
-        bottChangeTimer.stop();
-        
-    }
 }
