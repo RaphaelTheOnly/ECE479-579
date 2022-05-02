@@ -19,6 +19,7 @@ public class AISystem extends JFrame {
 	  private int numEmpty; // Number of empty bottles in our unit
 	  public int randNum; // Random integer Used to decide which house needs delivery
 	  
+	  
 	  // Default Constructor
 	  public AISystem() { 
 		  randNum = 5; // 5 is not one of the generated random numbers
@@ -120,6 +121,7 @@ public class AISystem extends JFrame {
 	    	if (getDispBFill() == 0) {
 	    		// This timer below triggers the actionPerformed fct in UserInterface
 				ui.startBottChangeTimer(); 
+	    		//RobotArm robot = new RobotArm(ui);
 			}
 	  }
 	  

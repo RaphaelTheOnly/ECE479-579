@@ -1,10 +1,16 @@
 package hardware;
 
-public class RobotArm {
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import gui.UserInterface;
+
+public class RobotArm implements ActionListener {
 	
 	private Bottle stateOfBottles[] = new Bottle[5];
 	private int emptyBottleCounter;
 	
+	private int stateInt;
 	private boolean handEmpty;
 	private int armPosition;
 	private int vacantPosition;
@@ -13,9 +19,16 @@ public class RobotArm {
 	private boolean holding;
 	private String contentsOfHolding;
 	private Bottle tempBottle;
+	private UserInterface ui;
+	//private String nextOperation;
 	
 	// constructor
-	RobotArm(){
+	public RobotArm(){
+		this(new UserInterface());
+	}
+	
+	public RobotArm(UserInterface ui) {
+		this.ui = ui;
 		// initial state
 		stateOfBottles[0] = new Bottle(100);
 		stateOfBottles[1] = new Bottle(100);
@@ -31,6 +44,7 @@ public class RobotArm {
 		isIdle = true;
 		holding = false;
 		contentsOfHolding = "";
+		stateInt = 0;
 	}
 	
 	// resets the robot arm to initial state 1 (4 full bottles)
@@ -49,58 +63,146 @@ public class RobotArm {
 		// TODO
 	}
 	
+	public void resetStateInt() {
+		stateInt = 0;
+	}
+	
 	// call this when the current bottle runs empty, replace it and rotate all the bottles accordingly
 	public void rotateBottles() {
-		
-		if (isIdle) {
-			isIdle = false;
-			while (!isIdle) {
-				moveArm(0);
-				if (vacantPosition != 0 && handEmpty && armPosition == 0) {
-					pickupBottle(0);
-				}
-				moveArm(4);
-				if (holding && vacantPosition == 4) {
-					placeBottle(4);
-				}
-				moveArm(1);
-				if (vacantPosition != 1 && handEmpty && armPosition == 1) {
-					pickupBottle(1);
-				}
-				moveArm(0);
-				if (holding && vacantPosition == 0) {
-					placeBottle(0); // this is where install() would happen
-				}
-				moveArm(2);
-				if (vacantPosition != 2 && handEmpty && armPosition == 2) {
-					pickupBottle(2);
-				}
-				moveArm(1);
-				if (holding && vacantPosition == 1) {
-					placeBottle(1);
-				}
-				moveArm(3);
-				if (vacantPosition != 3 && handEmpty && armPosition == 3) {
-					pickupBottle(3);
-				}
-				moveArm(2);
-				if (holding && vacantPosition == 2) {
-					placeBottle(2);
-				}
-				moveArm(4);
-				if (vacantPosition != 4 && handEmpty && armPosition == 4) {
-					pickupBottle(4);
-				}
-				moveArm(3);
-				if (holding && vacantPosition == 3) {
-					placeBottle(3);
-				}
-				isIdle = true;
-			}
+		if (stateInt == 0) {
+			ui.stateLabel.setText("Next Operation: PickupBottle(0)");
+			stateInt++;
+			//ui.stateUpdateTimer.stop();
 		}
-		armPosition = 99; // reset to idle position
-		stateOfBottles[4] = new Bottle(-1); // reset to proper condition
-		emptyBottleCounter ++;
+		else if (stateInt == 1) {
+			ui.stateLabel.setText("Next Operation: MoveArm(4)");
+			stateInt++;
+		}
+		else if (stateInt == 2) {
+			ui.stateLabel.setText("Next Operation: PlaceBottle(4)");
+			stateInt++;
+		}
+		else if (stateInt == 3) {
+			ui.stateLabel.setText("Next Operation: MoveArm(1)");
+			stateInt++;
+		}
+		else if (stateInt == 4) {
+			ui.stateLabel.setText("Next Operation: PickupBottle(1)");
+			stateInt++;
+		}
+		else if (stateInt == 5) {
+			ui.stateLabel.setText("Next Operation: MoveArm(0)");
+			stateInt++;
+		}
+		else if (stateInt == 6) {
+			ui.stateLabel.setText("Next Operation: PlaceBottle(0)");
+			stateInt++;
+		}
+		else if (stateInt == 7) {
+			ui.stateLabel.setText("Next Operation: MoveArm(2)");
+			stateInt++;
+		}
+		else if (stateInt == 8) {
+			ui.stateLabel.setText("Next Operation: PickupBottle(2)");
+			stateInt++;
+		}
+		else if (stateInt == 9) {
+			ui.stateLabel.setText("Next Operation: MoveArm(1)");
+			stateInt++;
+		}
+		else if (stateInt == 10) {
+			ui.stateLabel.setText("Next Operation: PlaceBottle(1)");
+			stateInt++;
+		}
+		else if (stateInt == 11) {
+			ui.stateLabel.setText("Next Operation: MoveArm(3)");
+			stateInt++;
+		}
+		else if (stateInt == 12) {
+			ui.stateLabel.setText("Next Operation: PickupBottle(3)");
+			stateInt++;
+		}
+		else if (stateInt == 13) {
+			ui.stateLabel.setText("Next Operation: MoveArm(2)");
+			stateInt++;
+		}
+		else if (stateInt == 14) {
+			ui.stateLabel.setText("Next Operation: PlaceBottle(2)");
+			stateInt++;
+		}
+		else if (stateInt == 15) {
+			ui.stateLabel.setText("Next Operation: MoveArm(4)");
+			stateInt++;
+		}
+		else if (stateInt == 16) {
+			ui.stateLabel.setText("Next Operation: PickupBottle(4)");
+			stateInt++;
+		}
+		else if (stateInt == 17) {
+			ui.stateLabel.setText("Next Operation: MoveArm(3)");
+			stateInt++;
+		}
+		else if (stateInt == 18) {
+			ui.stateLabel.setText("Next Operation: PlaceBottle(3)");
+			stateInt++;
+		}
+		else if (stateInt == 19) {
+			ui.stateLabel.setText("Go idle");
+			stateInt++;
+		}
+		else {
+			ui.doneRotating();
+		}
+		
+//		if (isIdle) {
+//			isIdle = false;
+//			while (!isIdle) {
+//				moveArm(0);
+//				if (vacantPosition != 0 && handEmpty && armPosition == 0) {
+//					pickupBottle(0);
+//				}
+//				moveArm(4);
+//				if (holding && vacantPosition == 4) {
+//					placeBottle(4);
+//				}
+//				moveArm(1);
+//				if (vacantPosition != 1 && handEmpty && armPosition == 1) {
+//					pickupBottle(1);
+//				}
+//				moveArm(0);
+//				if (holding && vacantPosition == 0) {
+//					placeBottle(0); // this is where install() would happen
+//				}
+//				moveArm(2);
+//				if (vacantPosition != 2 && handEmpty && armPosition == 2) {
+//					pickupBottle(2);
+//				}
+//				moveArm(1);
+//				if (holding && vacantPosition == 1) {
+//					placeBottle(1);
+//				}
+//				moveArm(3);
+//				if (vacantPosition != 3 && handEmpty && armPosition == 3) {
+//					pickupBottle(3);
+//				}
+//				moveArm(2);
+//				if (holding && vacantPosition == 2) {
+//					placeBottle(2);
+//				}
+//				moveArm(4);
+//				if (vacantPosition != 4 && handEmpty && armPosition == 4) {
+//					pickupBottle(4);
+//				}
+//				moveArm(3);
+//				if (holding && vacantPosition == 3) {
+//					placeBottle(3);
+//				}
+//				isIdle = true;
+//			}
+//		}
+//		armPosition = 99; // reset to idle position
+//		stateOfBottles[4] = new Bottle(-1); // reset to proper condition
+//		emptyBottleCounter ++;
 	}
 	
 	// move arm TO position x [0 - 4]
@@ -147,6 +249,13 @@ public class RobotArm {
 			System.out.println("[" + i + "]" + stateOfBottles[i].getStatus());
 		}
 		System.out.println("***************");
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		
+		ui.stateLabel.setVisible(true);
+		rotateBottles();
 	}
 	
 	// local testing

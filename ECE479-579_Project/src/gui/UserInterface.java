@@ -8,6 +8,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 
+import hardware.RobotArm;
 import software.AISystem;
 import people.Technician;
 
@@ -15,11 +16,14 @@ import people.Technician;
 public class UserInterface extends JPanel implements ActionListener {
 
 	private AISystem aiSystem;
-	public Technician technician;
+	private Technician technician;
+	private RobotArm robot;
 	private Image image; // For background image
 	private final int B_WIDTH = 1037;
     private final int B_HEIGHT = 850;
+    //private String currentState;
     
+    public JLabel stateLabel;
     public JLabel leakLabel;
     public JLabel fillLabel;
     public JLabel fullBottlesLabel;
@@ -38,6 +42,7 @@ public class UserInterface extends JPanel implements ActionListener {
     
     private Timer bottChangeTimer; 
 	private Timer bottDeliveryTimer; 
+	private Timer stateUpdateTimer;
     
 	// Default constructor
     public UserInterface() {
@@ -49,10 +54,12 @@ public class UserInterface extends JPanel implements ActionListener {
 	public UserInterface(AISystem s1) {
 		aiSystem = s1; // reference to AISystem that is controlling "it all"
 		technician = new Technician(this); // This often shows an error that 
+		robot = new RobotArm(this);
 		// "The constructor Technician(UserInterface) is undefined. Fixable by
 		// clicking on "Project" -> "Clean..." in the taskbar
 		bottChangeTimer = new Timer(1000, this); // ~1 sec timer to change bottles
 		bottDeliveryTimer = new Timer(2000, technician); // ~2 sec timer to deliver bottles
+		stateUpdateTimer = new Timer(1000, robot);
 		initUI();
 	}
 
@@ -61,6 +68,14 @@ public class UserInterface extends JPanel implements ActionListener {
         setFocusable(true);
         setBackground(Color.BLACK);
         setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
+        
+        // Blue state label test
+        stateLabel = new JLabel();
+        stateLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        stateLabel.setBounds(700,330,600,300); // Position of this GUI element via (x, y, width, height)
+        stateLabel.setForeground(Color.blue);
+        stateLabel.setVisible(false); // Not visible by default 
+		add(stateLabel);
 		
         // Big red font label that the unit has a leak, toggled visible when needed
         leakLabel = new JLabel("<html> <font color=red> ThirstAid detected a leak, a technician is on their way!</font></html>");
@@ -273,7 +288,21 @@ public class UserInterface extends JPanel implements ActionListener {
 	
 	// Fct for starting the change bottle timer
 	public void startBottChangeTimer() {
+		//bottChangeTimer.start();
+		stateUpdateTimer.start();
+		stateLabel.setVisible(true);
+		stateLabel.setText("Next Operation: moveArm(0)");
+	}
+	
+	public void doneRotating() {
 		bottChangeTimer.start();
+		stateLabel.setVisible(false);
+		repaint();
+		stateUpdateTimer.restart();
+		stateUpdateTimer.stop();
+		robot.resetStateInt();
+		
+		
 	}
 	
 	// Fct for starting the deliver-new-bottles timer (for technician)
@@ -300,6 +329,13 @@ public class UserInterface extends JPanel implements ActionListener {
 		bottDeliveryTimer.stop();
 	}
 	
+	public void stateChanged() {
+		leakLabel.setVisible(false);
+		repaint();
+		stateUpdateTimer.restart();
+		stateUpdateTimer.stop();
+	}
+	
 	public boolean getTechLeakDetected() {
 		return technician.leakDetected;
 	}
@@ -311,6 +347,7 @@ public class UserInterface extends JPanel implements ActionListener {
 	public int getNumEmptyBott() {
 		return aiSystem.getNumEmpty();
 	}
+	
 	
 	// This function gets called by "repaint()" and is very important for keeping the GUI updated
 	@Override 
