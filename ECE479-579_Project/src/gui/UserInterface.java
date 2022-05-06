@@ -5,7 +5,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Random;
+
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
 import hardware.RobotArm;
@@ -19,10 +23,14 @@ public class UserInterface extends JPanel implements ActionListener {
 	private Technician technician;
 	private RobotArm robot;
 	private Image image; // For background image
-	private final int B_WIDTH = 1037;
-    private final int B_HEIGHT = 850;
+	private ArrayList<Integer> sequence;
+	private char[] bestPath;
+	private int temperature;
+    private int randNum; // Random integer Used to decide which house needs delivery
     //private String currentState;
     
+    public JLabel temperatureLabel;
+    public JLabel introToStateLabel;
     public JLabel stateLabel;
     public JLabel leakLabel;
     public JLabel fillLabel;
@@ -33,6 +41,7 @@ public class UserInterface extends JPanel implements ActionListener {
     public JLabel thirdHouseLabel;
     public JLabel fourthHouseLabel;
     public JLabel fifthHouseLabel;
+    public JButton stateOnOffBtn;
     public JButton dispense500ozButton;
     public JButton emptyTheDispenserBottleButton;
     public JButton small16ozBtn;
@@ -40,47 +49,93 @@ public class UserInterface extends JPanel implements ActionListener {
     public JButton large64ozBtn;
     public JButton stopBtn;
     
-    private Timer bottChangeTimer; 
-	private Timer bottDeliveryTimer; 
+    //private Timer bottChangeTimer; 
+    private Timer temperatureTime; 
 	private Timer stateUpdateTimer;
+	private Timer bottDeliveryTimer;
     
 	// Default constructor
     public UserInterface() {
     	// Call other constructor with argument
-    	this(new AISystem());
+    	this(new AISystem(), new ArrayList<Integer>());
     }
     
-    // Constructor with parameter
-	public UserInterface(AISystem s1) {
+    // Constructor with parameters
+	public UserInterface(AISystem s1, ArrayList<Integer> sequence) {
 		aiSystem = s1; // reference to AISystem that is controlling "it all"
 		technician = new Technician(this); // This often shows an error that 
 		robot = new RobotArm(this);
+		this.sequence = sequence;
+		temperature = 79;
+		randNum = 5; // 5 is not one of the generated random numbers
 		// "The constructor Technician(UserInterface) is undefined. Fixable by
 		// clicking on "Project" -> "Clean..." in the taskbar
-		bottChangeTimer = new Timer(1000, this); // ~1 sec timer to change bottles
-		bottDeliveryTimer = new Timer(2000, technician); // ~2 sec timer to deliver bottles
+		temperatureTime = new Timer(80, this);
 		stateUpdateTimer = new Timer(1000, robot);
+		bottDeliveryTimer = new Timer(2000, technician); // ~2 sec timer to deliver bottles
+		char places[] = {'S', 'A', 'B', 'C', 'D', 'E'};
+ 		// print the minimum weighted Hamiltonian Cycle
+ 		StringBuilder sb = new StringBuilder();
+        for(int i : sequence) {
+        	if(i < 7) {
+        		sb.append(places[i]);
+        	}
+        }
+        String bestPathStr = sb.toString();
+        bestPath = bestPathStr.toCharArray();
+		
 		initUI();
 	}
 
+	// Initialize the main GUI
     private void initUI() {
     	
         setFocusable(true);
         setBackground(Color.BLACK);
-        setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
         
-        // Blue state label test
+        // Dispenser Bottle Temperature label
+        temperatureLabel = new JLabel("<html>Temperature: <font color=blue>" + temperature + " F</font></html>");
+        temperatureLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        temperatureLabel.setBounds(60,140,280,50); 
+ 		add(temperatureLabel);
+ 		
+        // State Iteration On/Off Button
+        stateOnOffBtn = new JButton("<html><font color=black> Switch State <br> Display On/Off </font> </html>");
+        stateOnOffBtn.setBounds(750,290,140,52); 
+        //stateOnOffBtn.setFont(new Font("Arial", Font.BOLD, 18));
+        stateOnOffBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				robot.switchOnOffStateDisplay();
+				repaint();
+			}
+		});
+        this.add(stateOnOffBtn);
+        
+        // State Display label
+ 		introToStateLabel = new JLabel("State Representation for Robot Arm");
+ 		introToStateLabel.setFont(new Font("Arial", Font.BOLD, 16));
+ 		introToStateLabel.setBounds(690,340,280,50); 
+ 		introToStateLabel.setVisible(false); // Not visible by default 
+ 		add(introToStateLabel);
+ 		
+        // State label
         stateLabel = new JLabel();
-        stateLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        stateLabel.setBounds(700,330,600,300); // Position of this GUI element via (x, y, width, height)
-        stateLabel.setForeground(Color.blue);
+        //stateLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        stateLabel.setBounds(690,380,280,75); // Position of this GUI element via (x, y, width, height)
+        stateLabel.setBorder(BorderFactory.createLineBorder(Color.black));
+        stateLabel.setOpaque(true);
+        stateLabel.setBackground(Color.lightGray);
         stateLabel.setVisible(false); // Not visible by default 
 		add(stateLabel);
 		
         // Big red font label that the unit has a leak, toggled visible when needed
-        leakLabel = new JLabel("<html> <font color=red> ThirstAid detected a leak, a technician is on their way!</font></html>");
-        leakLabel.setFont(new Font("Arial", Font.BOLD, 45));
-        leakLabel.setBounds(280,80,600,300); // Position of this GUI element via (x, y, width, height)
+        leakLabel = new JLabel("<html><font color=red>&nbsp Alarm! ThirstAid detected a leak!<br>&nbsp A technician is on their way!</font></html>");
+        leakLabel.setFont(new Font("Arial", Font.BOLD, 36));
+        leakLabel.setBounds(270,70,600,140); // Position of this GUI element via (x, y, width, height)
+        leakLabel.setBorder(BorderFactory.createLineBorder(Color.black));
+        leakLabel.setOpaque(true);
+        leakLabel.setBackground(Color.pink);
         leakLabel.setVisible(false); // Not visible by default 
 		add(leakLabel);
 		
@@ -127,7 +182,7 @@ public class UserInterface extends JPanel implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				aiSystem.dispense(800);
-				aiSystem.checkBottlesAndFill();		
+				aiSystem.checkBottlesAndFill();	
 				repaint();
 			}
 		});
@@ -250,7 +305,7 @@ public class UserInterface extends JPanel implements ActionListener {
 		// Label for second house
 		secHouseLabel = new JLabel();
         secHouseLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        secHouseLabel.setBounds(20,550,300,80); 
+        secHouseLabel.setBounds(40,550,300,80); 
         secHouseLabel.setForeground(Color.black);
 		add(secHouseLabel);
 		
@@ -264,7 +319,7 @@ public class UserInterface extends JPanel implements ActionListener {
 		// Label for fourth house
 		fourthHouseLabel = new JLabel();
 		fourthHouseLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        fourthHouseLabel.setBounds(20,650,300,80); 
+        fourthHouseLabel.setBounds(40,650,300,80); 
         fourthHouseLabel.setForeground(Color.black);
 		add(fourthHouseLabel);
 		
@@ -276,7 +331,7 @@ public class UserInterface extends JPanel implements ActionListener {
 		add(fifthHouseLabel);
 		
         this.setLayout(null);
-       
+        startTemperatureTimer();
         ImagePanel();
     }
     
@@ -290,19 +345,42 @@ public class UserInterface extends JPanel implements ActionListener {
 	public void startBottChangeTimer() {
 		//bottChangeTimer.start();
 		stateUpdateTimer.start();
-		stateLabel.setVisible(true);
-		stateLabel.setText("Next Operation: moveArm(0)");
+		if (!robot.skipStateDisplay) {
+			temperatureTime.stop();
+			temperature = 42;
+			stateLabel.setVisible(true);
+			introToStateLabel.setVisible(true);
+			stateLabel.setText("<html><font color=black size=5>&nbsp MoveArmEmpty(idle,0)</font><br><font color=darkgray size=4>&nbsp &nbsp P & D: armPos(idle), HE <br>&nbsp &nbsp A: armPos(0)</font></html>");
+		}
 	}
 	
-	public void doneRotating() {
-		bottChangeTimer.start();
-		stateLabel.setVisible(false);
+	// Fct for starting the temperature timer
+	public void startTemperatureTimer() {
+		temperature = 79;
 		repaint();
-		stateUpdateTimer.restart();
+		temperatureTime.start();
+	}
+	
+	// Stop the temperature timer
+	public void stopTemperatureTimer() {
+		temperature = 42;
+		repaint();
+		temperatureTime.stop();
+	}
+	
+	// Call this function after the RobotArm is done cycling through all the shelves and bottles
+	public void doneRotating() {
+		//bottChangeTimer.start();
+		introToStateLabel.setVisible(false);
+		stateLabel.setVisible(false);
+		aiSystem.ReplaceBottle();
+		aiSystem.checkBottlesAndFill();
+		aiSystem.checkLeaks();
+        repaint();
+        stateUpdateTimer.restart();
 		stateUpdateTimer.stop();
 		robot.resetStateInt();
-		
-		
+		startTemperatureTimer();
 	}
 	
 	// Fct for starting the deliver-new-bottles timer (for technician)
@@ -310,18 +388,64 @@ public class UserInterface extends JPanel implements ActionListener {
 		bottDeliveryTimer.start();
 	}
 	
+	// Generate the random number that chooses which other house needs a bottle delivery
+	public void generateRandNum() {
+		// Create a random number to simulate the other households
+		Random rand = new Random();
+		randNum = rand.nextInt(4); // Next integer between 0 and 3 I think
+		System.out.println("Random Int value: "+ randNum);
+	}
+	
+	// Simulate the other houses needing bottles delivered
+	// This function gets called every time the GUI is "repainted"
+	public void checkRandNum4Houses() {
+		  // If the random integer from above is 0, then all need delivery. Other if-clauses leave out one of them.
+		  System.out.println("randNum = " +randNum);
+			if (randNum == 0) {
+				secHouseLabel.setText("<html>House " + Character.toString(bestPath[1]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+				thirdHouseLabel.setText("<html>House " + Character.toString(bestPath[2]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+				fourthHouseLabel.setText("<html>House " + Character.toString(bestPath[3]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+				fifthHouseLabel.setText("<html>House" + Character.toString(bestPath[4]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+			}
+			else if (randNum == 1) {
+				secHouseLabel.setText("<html>House " + Character.toString(bestPath[1]) + ":<br>&nbsp &nbsp <font color=green> good </font> </html>");
+				thirdHouseLabel.setText("<html>House " + Character.toString(bestPath[2]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+				fourthHouseLabel.setText("<html>House " + Character.toString(bestPath[3]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+				fifthHouseLabel.setText("<html>House " + Character.toString(bestPath[4]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+			}
+			else if (randNum == 2) {
+				secHouseLabel.setText("<html>House " + Character.toString(bestPath[1]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+				thirdHouseLabel.setText("<html>House " + Character.toString(bestPath[2]) + ":<br>&nbsp &nbsp <font color=green> good </font> </html>");
+				fourthHouseLabel.setText("<html>House " + Character.toString(bestPath[3]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+				fifthHouseLabel.setText("<html>House " + Character.toString(bestPath[4]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+			}
+			else if (randNum == 3) {
+				secHouseLabel.setText("<html>House " + Character.toString(bestPath[1]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+				thirdHouseLabel.setText("<html>House " + Character.toString(bestPath[2]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+				fourthHouseLabel.setText("<html>House " + Character.toString(bestPath[3]) + ":<br>&nbsp &nbsp <font color=green> good </font> </html>");
+				fifthHouseLabel.setText("<html>House " + Character.toString(bestPath[4]) + ":<br>&nbsp &nbsp <font color=red> need </font> </html>");
+			}
+			else {
+				secHouseLabel.setText("<html>House " + Character.toString(bestPath[1]) + ":<br>&nbsp &nbsp <font color=green> good </font> </html>");
+				thirdHouseLabel.setText("<html>House " + Character.toString(bestPath[2]) + ":<br>&nbsp &nbsp <font color=green> good </font> </html>");
+				fourthHouseLabel.setText("<html>House " + Character.toString(bestPath[3]) + ":<br>&nbsp &nbsp <font color=green> good </font> </html>");
+				fifthHouseLabel.setText("<html>House " + Character.toString(bestPath[4]) + ":<br>&nbsp &nbsp <font color=green> good </font> </html>");
+			}
+	  }
+	
 	// Fct to re-initialize the AISystem with a fresh set of bottles
 	// Might want to replace/edit this when we have the Traveling Salesman
 	public void bottlesDelivered() {
-		aiSystem.initSystem();
-		aiSystem.randNum = 5; // 5 is outside the random integers generated
+		aiSystem.restartSystem();
+		randNum = 5; // 5 is outside the random integers generated
 		bottDeliveryTimer.restart();
 		bottDeliveryTimer.stop();
 		technicianLabel.setVisible(false);
 		repaint();
+		startTemperatureTimer();
 	}
 	
-	// Do all the things necesarry when leak fixed
+	// Do all the things necessary when leak fixed
 	public void leakFixed() {
 		leakLabel.setVisible(false);
 		repaint();
@@ -329,25 +453,20 @@ public class UserInterface extends JPanel implements ActionListener {
 		bottDeliveryTimer.stop();
 	}
 	
-	public void stateChanged() {
-		leakLabel.setVisible(false);
-		repaint();
-		stateUpdateTimer.restart();
-		stateUpdateTimer.stop();
-	}
-	
+	// Return boolean value whether the technician still thinks there is a leak
 	public boolean getTechLeakDetected() {
 		return technician.leakDetected;
 	}
 	
+	// Tell the technician that the appliance detected a leak
 	public void setTechLeakDetected() {
 		technician.leakDetected = true;
 	}
 	
+	// Return the number of empty bottles that the AISystem is keeping track of
 	public int getNumEmptyBott() {
 		return aiSystem.getNumEmpty();
 	}
-	
 	
 	// This function gets called by "repaint()" and is very important for keeping the GUI updated
 	@Override 
@@ -358,21 +477,23 @@ public class UserInterface extends JPanel implements ActionListener {
 		fullBottlesLabel.setText("Full bottles: " + aiSystem.getNumFull());
 		emptyBottlesLabel.setText("Empty bottles: " + aiSystem.getNumEmpty());
 		fillLabel.setText("Current fill: " + aiSystem.getDispBFill() + " oz.");
-		aiSystem.checkRandNum4Houses();
+		temperatureLabel.setText("<html>Temperature: <font color=blue>" + temperature + " F</font></html>");
+		checkRandNum4Houses();
 		
 		Toolkit.getDefaultToolkit().sync();
 	}
 	
-	// This function gets triggered by the UI's timer
+	// This function gets triggered by the UserInterface's timer
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		aiSystem.changeBottles();
-		aiSystem.checkBottlesAndFill();
-		aiSystem.checkLeaks();
-        repaint();
-        bottChangeTimer.restart();
-        bottChangeTimer.stop();
-	        
+		if (temperature == 42) {
+			temperatureTime.restart();
+	        temperatureTime.stop();
+		}
+		else {
+			temperature--;
+			temperatureLabel.setText("<html>Temperature: <font color=blue>" + temperature + " F</font></html>");
+	        repaint();
+		}        
 	}
-	
 }

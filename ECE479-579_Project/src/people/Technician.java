@@ -21,11 +21,11 @@ public class Technician implements ActionListener {
 		leakDetected = false;
 	}
 
-	// Necessary function for the timer
+	// Necessary function for the UserInterface's bottDeliveryTimer
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// If there's a leak and they need bottles, do both
-		if (leakDetected && ui.getNumEmptyBott() == 0) {
+		if (leakDetected && ui.getNumEmptyBott() == 3) {
 			System.out.println("leak detected and no more full bottles");
 			fixLeak();
 			deliverBottles();
@@ -41,13 +41,13 @@ public class Technician implements ActionListener {
 		}
 	}
 	
-	// Fct that bundles what needs to be done to fix the leak
+	// Fct that changes the items necessary to fix the leak
 	public void fixLeak() {
 		ui.leakFixed();
 		leakDetected = false;
 	}
 	
-	// Fct that bundles what needs to be done to deliver the bottles
+	// Fct that calls the UserInterface's "bottlesDelivered()" function
 	public void deliverBottles() {
 		ui.bottlesDelivered();
 	}

@@ -3,20 +3,18 @@ package hardware;
 import java.util.Random;
 
 public class Bottle {
-	// max volume is 6 gallons = 768 ounces
-	private int ouncesRemaining;
+	private int ouncesRemaining; // max volume is 6 gallons = 768 ounces
 	private boolean isEmpty;
 	private boolean lessThanQuarterFull;
 	private String status;
     
-	// constructor
+	// Default constructor
 	public Bottle() {
 		this(100);
 	}
 	
-	// constructor
+	// Parameterized constructor
 	public Bottle(int percentFull) {
-		
 		if (percentFull == -1) { // initiate a bottle with -1 to establish the "null bottle"
 			status = "vacant";
 		}
@@ -37,17 +35,14 @@ public class Bottle {
 		}
 	}
 		
-	// getter for how many ounces left in bottle
+	// Getter for how many ounces left in bottle
 	public int getOunces() {
 		return ouncesRemaining;
 	}
 	
+	// Getter for if the bottle is empty
 	public boolean getIsEmpty() {
 		return isEmpty;
-	}
-	
-	public boolean getIsLessThanQuarterFull() {
-		return lessThanQuarterFull;
 	}
 	
 	public String getStatus() {
@@ -58,7 +53,7 @@ public class Bottle {
 		this.status = newStatus;
 	}
 	
-	// calculate percentage fullness of bottle
+	// Function to calculate the percentage-fullness of the bottle
 	public int howFull() {
 		double percentFull = (ouncesRemaining / 768.0);
 		percentFull = percentFull * 100.0;
@@ -70,6 +65,7 @@ public class Bottle {
 		return integerPercentage;
 	}
 	
+	// Function to dispense a certain amount of water from the bottle
 	public void dispense(int vol) {
 		// TODO if dispensing more than ouncesRemaining, limit the dispense 
 		ouncesRemaining -= vol;
@@ -81,35 +77,6 @@ public class Bottle {
 			ouncesRemaining = 0;
 			isEmpty = true;
 			status = "empty";
-			// TODO if = 0, isEmpty = true, replace bottle
 		}
 	}
-	
-	public void randomDispense() {
-		Random x = new Random();
-		int randomVolume = x.nextInt(48) + 20; // 48 can change, just seemed like a reasonable cap per dispense use
-		System.out.println("Dispensing ounces: " + randomVolume);
-		dispense(randomVolume);
-	}
-	
-    public void printHowFull() {
-    	System.out.println("Bottle is " + howFull() + "% full");
-    }
-    
-    // local testing
-    public static void main(String args[]) {
-    	System.out.println("Hello");
-    	Bottle b1 = new Bottle();
-    	System.out.println("ounces in b1: " + b1.getOunces());
-    	System.out.println("Status: " + b1.status);
-    	b1.dispense(100);
-    	System.out.println("ounces in b1: " + b1.getOunces());
-    	b1.printHowFull();
-    	b1.dispense(968);
-    	System.out.println("ounces in b1: " + b1.getOunces());
-    	b1.printHowFull();
-    	Bottle b2 = new Bottle(-1);
-    	System.out.println("Status of b2: " + b2.status);
-    	
-    }
 }
